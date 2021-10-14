@@ -83,28 +83,52 @@ TicTacToe.Board = Backbone.View.extend({
       ...this.score.diagonal,
     ];
 
-    for (let position of oneBigArray) {
-      if (position === 3) {
-        console.log("player 1 wins");
-      } else if (position === -3) {
-        console.log("player 2 wins");
-      }
+    if (this.score.count === 9) {
+      this.disableButtons();
+      this.game.endGame({ tie: true });
     }
 
-    if (this.score.count === 9) {
-      console.log("it's a tie");
+    for (let position of oneBigArray) {
+      if (position === 3 || position === -3) {
+        this.disableButtons();
+        this.game.endGame({ tie: false });
+      }
     }
+  },
+
+  disableButtons: function () {
+    _.each(this.board.flat(), function (ele) {
+      ele.$el.prop("disabled", true);
+    });
+  },
+
+  restart: function () {
+    _.each(this.board.flat(), function (ele) {
+      ele.player = null;
+      ele.$el.html("");
+      ele.$el.prop("disabled", false);
+    });
+    this.score = {
+      row: [0, 0, 0],
+      column: [0, 0, 0],
+      diagonal: [0, 0],
+      count: 0,
+    };
   },
 });
 
 TicTacToe.Game = Backbone.View.extend({
   el: ".game-container",
   players: null,
+  board: null,
+
+  events: {
+    "click .restart": "restart",
+  },
 
   initialize: function () {
     this.players = new TicTacToe.Players();
     this.board = new TicTacToe.Board({ game: this });
-    this.listenTo(this, "move", this.nextPlayer);
   },
 
   getCurrentPlayer: function () {
@@ -113,6 +137,19 @@ TicTacToe.Game = Backbone.View.extend({
 
   nextPlayer: function () {
     this.players.next();
+  },
+
+  endGame: function (options) {
+    if (options.tie) {
+      this.$(".alert").html("It's a tie.");
+    } else {
+      let winningPlayer = this.getCurrentPlayer().get("playerToken");
+      this.$(".alert").html(`${winningPlayer} wins!`);
+    }
+  },
+
+  restart: function () {
+    this.board.restart();
   },
 });
 
