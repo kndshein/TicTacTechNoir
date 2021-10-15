@@ -1,5 +1,4 @@
 TicTacToe.Position = Backbone.View.extend({
-  el: "",
   player: null,
   position: [],
   board: null,
@@ -10,7 +9,7 @@ TicTacToe.Position = Backbone.View.extend({
   },
 
   initialize: function (options) {
-    this.setElement(options.el);
+    this.template = _.template($(".position-template").html());
     this.position = options.position;
     this.board = options.board;
   },
@@ -29,6 +28,12 @@ TicTacToe.Position = Backbone.View.extend({
   isAvailable: function () {
     return this.player === null;
   },
+
+  render: function () {
+    console.log("Poop", this.template);
+    this.$el.html(this.template);
+    return this;
+  },
 });
 
 TicTacToe.Board = Backbone.View.extend({
@@ -45,14 +50,21 @@ TicTacToe.Board = Backbone.View.extend({
   initialize: function (options) {
     this.setElement(".board");
     this.game = options.game;
+    this.render();
+  },
+
+  render: function () {
+    // let that = this;
     for (let row = 0; row < 3; row++) {
       this.board.push([]);
       for (let column = 0; column < 3; column++) {
         this.board[row][column] = new TicTacToe.Position({
-          el: `.position-${row}${column}`,
+          // el: `.position-${row}${column}`,
           position: [row, column],
           board: this,
         });
+        console.log(this.board[row][column]);
+        this.$el.append(this.board[row][column].render().$el);
       }
     }
   },
@@ -149,6 +161,7 @@ TicTacToe.Game = Backbone.View.extend({
   },
 
   restart: function () {
+    this.$(".alert").html("");
     this.board.restart();
   },
 });
