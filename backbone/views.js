@@ -10,6 +10,7 @@ TicTacToe.Position = Backbone.View.extend({
 
   initialize: function (options) {
     this.template = _.template($(".position-template").html());
+    this.$el.html(this.template({ token: "" }));
     this.position = options.position;
     this.board = options.board;
   },
@@ -20,19 +21,13 @@ TicTacToe.Position = Backbone.View.extend({
     }
 
     this.player = this.board.game.getCurrentPlayer();
-    this.el.innerHTML = this.player.getPlayerToken();
+    this.$el.html(this.template({ token: this.player.getPlayerToken() }));
     this.board.recordPosition(this.position, this.player.getPlayerToken());
     this.board.game.nextPlayer();
   },
 
   isAvailable: function () {
     return this.player === null;
-  },
-
-  render: function () {
-    console.log("Poop", this.template);
-    this.$el.html(this.template);
-    return this;
   },
 });
 
@@ -48,23 +43,19 @@ TicTacToe.Board = Backbone.View.extend({
   },
 
   initialize: function (options) {
-    this.setElement(".board");
     this.game = options.game;
     this.render();
   },
 
   render: function () {
-    // let that = this;
     for (let row = 0; row < 3; row++) {
       this.board.push([]);
       for (let column = 0; column < 3; column++) {
         this.board[row][column] = new TicTacToe.Position({
-          // el: `.position-${row}${column}`,
           position: [row, column],
           board: this,
         });
-        console.log(this.board[row][column]);
-        this.$el.append(this.board[row][column].render().$el);
+        this.$el.append(this.board[row][column].$el);
       }
     }
   },
@@ -96,29 +87,28 @@ TicTacToe.Board = Backbone.View.extend({
     ];
 
     if (this.score.count === 9) {
-      this.disableButtons();
       this.game.endGame({ tie: true });
     }
 
     for (let position of oneBigArray) {
       if (position === 3 || position === -3) {
-        this.disableButtons();
         this.game.endGame({ tie: false });
       }
     }
   },
 
   disableButtons: function () {
+    console.log(this.board.flat());
     _.each(this.board.flat(), function (ele) {
-      ele.$el.prop("disabled", true);
+      ele.$el.children().prop("disabled", true);
     });
   },
 
   restart: function () {
     _.each(this.board.flat(), function (ele) {
       ele.player = null;
-      ele.$el.html("");
-      ele.$el.prop("disabled", false);
+      ele.$el.html(ele.template({ token: "" }));
+      ele.$el.children().prop("disabled", false);
     });
     this.score = {
       row: [0, 0, 0],
@@ -158,6 +148,7 @@ TicTacToe.Game = Backbone.View.extend({
       let winningPlayer = this.getCurrentPlayer().get("playerToken");
       this.$(".alert").html(`${winningPlayer} wins!`);
     }
+    this.board.disableButtons();
   },
 
   restart: function () {

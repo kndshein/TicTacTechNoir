@@ -1,1 +1,9 @@
-/* No CSS *//*# sourceMappingURL=index.css.map */
+.board {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (50px)[3];
+      grid-template-columns: repeat(3, 50px);
+  -ms-grid-rows: (auto)[3];
+      grid-template-rows: repeat(3, auto);
+}
+/*# sourceMappingURL=index.css.map */
