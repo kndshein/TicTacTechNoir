@@ -1,3 +1,13 @@
+.boards-container {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (150px)[3];
+      grid-template-columns: repeat(3, 150px);
+  -ms-grid-rows: (auto)[3];
+      grid-template-rows: repeat(3, auto);
+  gap: 30px;
+}
+
 .board {
   display: -ms-grid;
   display: grid;
@@ -5,5 +15,10 @@
       grid-template-columns: repeat(3, 50px);
   -ms-grid-rows: (auto)[3];
       grid-template-rows: repeat(3, auto);
+}
+
+.position {
+  width: 50px;
+  height: 50px;
 }
 /*# sourceMappingURL=index.css.map */

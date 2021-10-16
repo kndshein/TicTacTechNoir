@@ -1,4 +1,5 @@
 TicTacToe.Position = Backbone.View.extend({
+  tagName: "button",
   player: null,
   position: [],
   board: null,
@@ -9,8 +10,7 @@ TicTacToe.Position = Backbone.View.extend({
   },
 
   initialize: function (options) {
-    this.template = _.template($(".position-template").html());
-    this.$el.html(this.template({ token: "" }));
+    this.$el.addClass("position");
     this.position = options.position;
     this.board = options.board;
   },
@@ -20,10 +20,10 @@ TicTacToe.Position = Backbone.View.extend({
       return;
     }
 
-    this.player = this.board.game.getCurrentPlayer();
-    this.$el.html(this.template({ token: this.player.getPlayerToken() }));
+    this.player = this.board.boards.game.getCurrentPlayer();
+    this.$el.html(this.player.getPlayerToken());
     this.board.recordPosition(this.position, this.player.getPlayerToken());
-    this.board.game.nextPlayer();
+    this.board.boards.game.nextPlayer();
   },
 
   isAvailable: function () {
@@ -32,9 +32,8 @@ TicTacToe.Position = Backbone.View.extend({
 });
 
 TicTacToe.Board = Backbone.View.extend({
-  el: ".board",
-  board: [],
-  game: null,
+  // board: [],
+  boards: null,
   score: {
     row: [0, 0, 0],
     column: [0, 0, 0],
@@ -43,19 +42,27 @@ TicTacToe.Board = Backbone.View.extend({
   },
 
   initialize: function (options) {
-    this.game = options.game;
+    this.board = [];
+    this.boards = options.boards;
+    this.score = {
+      row: [0, 0, 0],
+      column: [0, 0, 0],
+      diagonal: [0, 0],
+      count: 0,
+    };
+    this.$el.addClass("board");
     this.render();
   },
 
   render: function () {
     for (let row = 0; row < 3; row++) {
-      this.board.push([]);
       for (let column = 0; column < 3; column++) {
-        this.board[row][column] = new TicTacToe.Position({
+        let newPosition = new TicTacToe.Position({
           position: [row, column],
           board: this,
         });
-        this.$el.append(this.board[row][column].$el);
+        this.board.push(newPosition);
+        this.$el.append(newPosition.$el);
       }
     }
   },
@@ -80,6 +87,7 @@ TicTacToe.Board = Backbone.View.extend({
   },
 
   checkScore: function () {
+    console.log(this, this.board, this.score);
     let oneBigArray = [
       ...this.score.row,
       ...this.score.column,
@@ -87,14 +95,18 @@ TicTacToe.Board = Backbone.View.extend({
     ];
 
     if (this.score.count === 9) {
-      this.game.endGame({ tie: true });
+      this.endBoard({ tie: true });
     }
 
     for (let position of oneBigArray) {
       if (position === 3 || position === -3) {
-        this.game.endGame({ tie: false });
+        this.endBoard({ tie: false });
       }
     }
+  },
+
+  endBoard: function () {
+    this.disableButtons();
   },
 
   disableButtons: function () {
@@ -119,10 +131,39 @@ TicTacToe.Board = Backbone.View.extend({
   },
 });
 
+TicTacToe.Boards = Backbone.View.extend({
+  el: ".boards-container",
+  boards: [],
+  game: null,
+  score: {
+    row: [0, 0, 0],
+    column: [0, 0, 0],
+    diagonal: [0, 0],
+    count: 0,
+  },
+
+  initialize: function (options) {
+    this.game = options.game;
+
+    for (let row = 0; row < 3; row++) {
+      for (let column = 0; column < 3; column++) {
+        let newBoard = new TicTacToe.Board({
+          position: [row, column],
+          boards: this,
+        });
+        this.boards.push(newBoard);
+        this.$el.append(newBoard.$el);
+      }
+    }
+  },
+
+  restart: function () {},
+});
+
 TicTacToe.Game = Backbone.View.extend({
   el: ".game-container",
   players: null,
-  board: null,
+  boards: null,
 
   events: {
     "click .restart": "restart",
@@ -130,7 +171,7 @@ TicTacToe.Game = Backbone.View.extend({
 
   initialize: function () {
     this.players = new TicTacToe.Players();
-    this.board = new TicTacToe.Board({ game: this });
+    this.boards = new TicTacToe.Boards({ game: this });
   },
 
   getCurrentPlayer: function () {
@@ -153,7 +194,7 @@ TicTacToe.Game = Backbone.View.extend({
 
   restart: function () {
     this.$(".alert").html("");
-    this.board.restart();
+    this.boards.restart();
   },
 });
 
